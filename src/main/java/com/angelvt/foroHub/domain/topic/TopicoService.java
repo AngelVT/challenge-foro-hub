@@ -9,10 +9,11 @@ import com.angelvt.foroHub.domain.topic.validaciones.IValidarTopico;
 import com.angelvt.foroHub.domain.usuario.UsuarioRepository;
 import com.angelvt.foroHub.infra.errors.IntegrityValidation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -32,6 +33,40 @@ public class TopicoService {
         this.cursoRepository = cursoRepository;
         this.respuestaRepository = respuestaRepository;
         this.validarTopicos = validarTopicos;
+    }
+
+    public Page<TopicoDatosRespuesta> obtenerTopicos(Pageable paginar) {
+        return topicoRepository.findAllByActivoTrue(paginar).map(TopicoDatosRespuesta::new);
+    }
+
+    public List<TopicoDatosRespuesta> obtenerTopicosCurso(Long cursoId) {
+        if (!cursoRepository.existsById(cursoId)) {
+            throw new IntegrityValidation("El curso especificado no existe");
+        }
+
+        var curso = cursoRepository.getReferenceById(cursoId);
+
+        var topicos = topicoRepository.findByCursoAndActivoTrue(curso);
+
+        return topicos.stream()
+                .sorted(Comparator.comparing(Topico::getFechaCreacion).reversed())
+                .map(TopicoDatosRespuesta::new)
+                .toList();
+    }
+
+    public TopicoDatosCompleto obtenerTopico(Long id) {
+        if (!topicoRepository.existsByIdAndActivoTrue(id)) {
+            throw new IntegrityValidation("El topico especificado no existe");
+        }
+
+        var topico = topicoRepository.getReferenceById(id);
+
+        var respuestas = respuestaRepository.findByTopicoAndActivoTrue(topico).stream()
+                .sorted(Comparator.comparing(Respuesta::getFechaCreacion))
+                .map(RespuestaDatosListaTopico::new)
+                .toList();
+
+        return new TopicoDatosCompleto(topico, respuestas);
     }
 
     public TopicoDatosRespuesta publicarTopico(TopicoDatosRegistro datos) {
@@ -55,36 +90,6 @@ public class TopicoService {
         topicoRepository.save(topico);
 
         return new TopicoDatosRespuesta(topico);
-    }
-
-    public List<TopicoDatosRespuesta> obtenerTopicos(Long cursoId) {
-        if (!cursoRepository.existsById(cursoId)) {
-            throw new IntegrityValidation("El curso especificado no existe");
-        }
-
-        var curso = cursoRepository.getReferenceById(cursoId);
-
-        var topicos = topicoRepository.findByCursoAndActivoTrue(curso);
-
-        return topicos.stream()
-                .sorted(Comparator.comparing(Topico::getFechaCreacion).reversed())
-                .map(TopicoDatosRespuesta::new)
-                .toList();
-    }
-
-    public TopicoDatosCompleto obtenerTopico(Long id) {
-        if (!topicoRepository.existsByIdAndActivoTrue(id)) {
-            throw new IntegrityValidation("El topico especificado no existe");
-        }
-
-        var topico = topicoRepository.getReferenceById(id);
-
-        var respuestas = respuestaRepository.findByTopico(topico).stream()
-                .sorted(Comparator.comparing(Respuesta::getFechaCreacion).reversed())
-                .map(RespuestaDatosListaTopico::new)
-                .toList();
-
-        return new TopicoDatosCompleto(topico, respuestas);
     }
 
     public TopicoDatosRespuesta actualizarTopico(Long id, TopicoDatosActualizar datos) {
@@ -128,7 +133,10 @@ public class TopicoService {
 
         var topico = topicoRepository.getReferenceById(id);
 
+        var respuestas = respuestaRepository.findByTopicoAndActivoTrue(topico);
+
         topico.eliminar();
+        respuestas.forEach(Respuesta::eliminar);
         //Por logica de negocio no se elimina realmente el topico
         //topicoRepository.deleteById(id);
     }

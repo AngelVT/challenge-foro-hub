@@ -14,7 +14,6 @@ public class PingController {
         return ResponseEntity.ok(response);
     }
 
-    public record Pong(String msg) {
+    public record Pong(String mensaje) {
     }
-
 }

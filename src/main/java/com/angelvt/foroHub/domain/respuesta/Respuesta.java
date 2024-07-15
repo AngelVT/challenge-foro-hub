@@ -37,4 +37,25 @@ public class Respuesta {
     private Boolean solucion;
 
     private Boolean activo;
+
+    public Respuesta(Usuario autor, Topico topico, String mensaje) {
+        this.autor = autor;
+        this.topico = topico;
+        this.mensaje = mensaje;
+        this.fechaCreacion = LocalDateTime.now();
+        this.solucion = false;
+        this.activo = true;
+    }
+
+    public void actualizar(String mensaje) {
+        this.mensaje = mensaje;
+    }
+
+    public void marcarSolucion(boolean b) {
+        this.solucion = true;
+    }
+
+    public void eliminar() {
+        this.activo = false;
+    }
 }

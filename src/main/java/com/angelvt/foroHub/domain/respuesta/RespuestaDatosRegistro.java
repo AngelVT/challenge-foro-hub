@@ -1,6 +1,13 @@
 package com.angelvt.foroHub.domain.respuesta;
 
-public record RespuestaDatosRegistro(Long autor,
-                                     Long topico,
-                                     String mensaje) {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record RespuestaDatosRegistro(
+        @NotNull
+        Long autor,
+        @NotNull
+        Long topico,
+        @NotBlank
+        String mensaje) {
 }

@@ -4,9 +4,14 @@ import com.angelvt.foroHub.domain.topic.*;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -19,9 +24,15 @@ public class TopicController {
         this.topicoService = topicoService;
     }
 
+    @GetMapping
+    public ResponseEntity getTopicos(@PageableDefault(size = 10, sort = "fechaCreacion", direction = Sort.Direction.DESC) Pageable paginar) {
+        var topicos = topicoService.obtenerTopicos(paginar);
+        return ResponseEntity.ok(topicos);
+    }
+
     @GetMapping("/curso/{cursoId}")
-    public ResponseEntity<List<TopicoDatosRespuesta>> getTopicos(@PathVariable Long cursoId) {
-        var topicos = topicoService.obtenerTopicos(cursoId);
+    public ResponseEntity<List<TopicoDatosRespuesta>> getTopicosCurso(@PathVariable Long cursoId) {
+        var topicos = topicoService.obtenerTopicosCurso(cursoId);
         return ResponseEntity.ok(topicos);
     }
 
@@ -32,9 +43,11 @@ public class TopicController {
     }
 
     @PostMapping
-    public ResponseEntity<TopicoDatosRespuesta> createTopico(@RequestBody @Valid TopicoDatosRegistro datos) {
+    public ResponseEntity<TopicoDatosRespuesta> createTopico(@RequestBody @Valid TopicoDatosRegistro datos,
+                                                             UriComponentsBuilder uriComponentsBuilder) {
         var topicoNuevo = topicoService.publicarTopico(datos);
-        return ResponseEntity.ok(topicoNuevo);
+        URI url = uriComponentsBuilder.path("/topicos/{id}").buildAndExpand(topicoNuevo.id()).toUri();
+        return ResponseEntity.created(url).body(topicoNuevo);
     }
 
     @PutMapping("/{id}")
