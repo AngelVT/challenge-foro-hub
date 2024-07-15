@@ -11,4 +11,6 @@ public interface TopicoRepository extends JpaRepository<Topico, Long> {
     List<Topico> findByCursoAndActivoTrue(Curso curso);
 
     boolean existsByIdAndActivoTrue(Long id);
+
+    List<Topico> findAllByActivoTrue();
 }

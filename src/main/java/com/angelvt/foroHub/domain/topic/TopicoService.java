@@ -4,6 +4,8 @@ import com.angelvt.foroHub.domain.curso.CursoRepository;
 import com.angelvt.foroHub.domain.respuesta.Respuesta;
 import com.angelvt.foroHub.domain.respuesta.RespuestaDatosListaTopico;
 import com.angelvt.foroHub.domain.respuesta.RespuestaRepository;
+import com.angelvt.foroHub.domain.topic.validaciones.DatosTopico;
+import com.angelvt.foroHub.domain.topic.validaciones.IValidarTopico;
 import com.angelvt.foroHub.domain.usuario.UsuarioRepository;
 import com.angelvt.foroHub.infra.errors.IntegrityValidation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +23,15 @@ public class TopicoService {
     private final CursoRepository cursoRepository;
     private final RespuestaRepository respuestaRepository;
 
+    private final List<IValidarTopico> validarTopicos;
+
     @Autowired
-    public TopicoService(UsuarioRepository usuarioRepository, TopicoRepository topicoRepository, CursoRepository cursoRepository, RespuestaRepository respuestaRepository) {
+    public TopicoService(UsuarioRepository usuarioRepository, TopicoRepository topicoRepository, CursoRepository cursoRepository, RespuestaRepository respuestaRepository, List<IValidarTopico> validarTopicos) {
         this.usuarioRepository = usuarioRepository;
         this.topicoRepository = topicoRepository;
         this.cursoRepository = cursoRepository;
         this.respuestaRepository = respuestaRepository;
+        this.validarTopicos = validarTopicos;
     }
 
     public TopicoDatosRespuesta publicarTopico(TopicoDatosRegistro datos) {
@@ -40,6 +45,8 @@ public class TopicoService {
 
         var curso = cursoRepository.getReferenceById(datos.curso());
         var autor = usuarioRepository.getReferenceById(datos.autor());
+
+        validarTopicos.forEach(v -> v.validar(new DatosTopico(datos.titulo(), datos.mensaje())));
 
         LocalDateTime creacion = LocalDateTime.now();
 
@@ -87,9 +94,9 @@ public class TopicoService {
 
         var topico = topicoRepository.getReferenceById(id);
 
-        if (!topico.getStatus().equals(Estado.ABIERTO)) {
-            throw new IntegrityValidation("El topico ya se ha cerrado como " + topico.getStatus());
-        }
+        validarEstado(topico);
+
+        validarTopicos.forEach(v -> v.validar(new DatosTopico(datos.titulo(), datos.mensaje())));
 
         topico.actualizar(datos);
 
@@ -103,9 +110,7 @@ public class TopicoService {
 
         var topico = topicoRepository.getReferenceById(id);
 
-        if (!topico.getStatus().equals(Estado.ABIERTO)) {
-            throw new IntegrityValidation("El topico ya se ha cerrado como " + topico.getStatus());
-        }
+        validarEstado(topico);
 
         if (datos.estado().equals(Estado.CERRADO) || datos.estado().equals(Estado.CERRADO_RESUELTO)) {
             topico.setStatus(datos.estado());
@@ -124,5 +129,13 @@ public class TopicoService {
         var topico = topicoRepository.getReferenceById(id);
 
         topico.eliminar();
+        //Por logica de negocio no se elimina realmente el topico
+        //topicoRepository.deleteById(id);
+    }
+
+    public static void validarEstado(Topico topico) {
+        if (!topico.getStatus().equals(Estado.ABIERTO)) {
+            throw new IntegrityValidation("El topico ya se ha cerrado como " + topico.getStatus());
+        }
     }
 }
