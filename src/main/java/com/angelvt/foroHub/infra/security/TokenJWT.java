@@ -1,4 +1,4 @@
 package com.angelvt.foroHub.infra.security;
 
-public record TokenJWT() {
+public record TokenJWT(String jwtToken) {
 }

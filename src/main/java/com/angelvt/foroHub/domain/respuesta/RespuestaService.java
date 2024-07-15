@@ -5,10 +5,10 @@ import com.angelvt.foroHub.domain.topic.TopicoRepository;
 import com.angelvt.foroHub.domain.topic.TopicoService;
 import com.angelvt.foroHub.domain.usuario.UsuarioRepository;
 import com.angelvt.foroHub.infra.errors.IntegrityValidation;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -40,7 +40,7 @@ public class RespuestaService {
 
     public RespuestaDatosCompleto obtenerRespuesta(Long id) {
         if (!respuestaRepository.existsByIdAndActivoTrue(id)) {
-            throw new IntegrityValidation("La respuesta no existe");
+            throw new EntityNotFoundException("La respuesta no existe");
         }
 
         var respuesta = respuestaRepository.getReferenceById(id);
@@ -73,7 +73,7 @@ public class RespuestaService {
 
     public RespuestaDatosCompleto actualizarRespuesta(Long id, RespuestaDatosActualizar datosActualizar) {
         if (!respuestaRepository.existsByIdAndActivoTrue(id)) {
-            throw new IntegrityValidation("La respuesta especificada no existe");
+            throw new EntityNotFoundException("La respuesta especificada no existe");
         }
 
         var respuesta = respuestaRepository.getReferenceById(id);
@@ -85,7 +85,7 @@ public class RespuestaService {
 
     public RespuestaDatosCompleto marcarComoSolucion(Long id) {
         if (!respuestaRepository.existsByIdAndActivoTrue(id)) {
-            throw new IntegrityValidation("La respuesta especificada no existe");
+            throw new EntityNotFoundException("La respuesta especificada no existe");
         }
 
         var respuesta = respuestaRepository.getReferenceById(id);
@@ -103,7 +103,7 @@ public class RespuestaService {
 
     public void eliminarRespuesta(Long id) {
         if (!respuestaRepository.existsByIdAndActivoTrue(id)) {
-            throw new IntegrityValidation("La respuesta especificada no existe");
+            throw new EntityNotFoundException("La respuesta especificada no existe");
         }
 
         var respuesta = respuestaRepository.getReferenceById(id);

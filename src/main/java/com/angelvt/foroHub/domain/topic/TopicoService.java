@@ -8,6 +8,7 @@ import com.angelvt.foroHub.domain.topic.validaciones.DatosTopico;
 import com.angelvt.foroHub.domain.topic.validaciones.IValidarTopico;
 import com.angelvt.foroHub.domain.usuario.UsuarioRepository;
 import com.angelvt.foroHub.infra.errors.IntegrityValidation;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -56,7 +57,7 @@ public class TopicoService {
 
     public TopicoDatosCompleto obtenerTopico(Long id) {
         if (!topicoRepository.existsByIdAndActivoTrue(id)) {
-            throw new IntegrityValidation("El topico especificado no existe");
+            throw new EntityNotFoundException("El topico especificado no existe");
         }
 
         var topico = topicoRepository.getReferenceById(id);
@@ -94,7 +95,7 @@ public class TopicoService {
 
     public TopicoDatosRespuesta actualizarTopico(Long id, TopicoDatosActualizar datos) {
         if (!topicoRepository.existsByIdAndActivoTrue(id)) {
-            throw new IntegrityValidation("El topico especificado no existe");
+            throw new EntityNotFoundException("El topico especificado no existe");
         }
 
         var topico = topicoRepository.getReferenceById(id);
@@ -110,7 +111,7 @@ public class TopicoService {
 
     public TopicoDatosRespuesta cerrarTopico(Long id, TopicoDatosActualizar datos) {
         if (!topicoRepository.existsByIdAndActivoTrue(id)) {
-            throw new IntegrityValidation("El topico especificado no existe");
+            throw new EntityNotFoundException("El topico especificado no existe");
         }
 
         var topico = topicoRepository.getReferenceById(id);
@@ -123,12 +124,12 @@ public class TopicoService {
             throw new IntegrityValidation("Solo se puede cerrar un topico como cerrado o cerrado resuelto.");
         }
 
-        return  new TopicoDatosRespuesta(topico);
+        return new TopicoDatosRespuesta(topico);
     }
 
     public void borrarTopico(Long id) {
-        if (id != null && !topicoRepository.existsByIdAndActivoTrue(id)) {
-            throw new IntegrityValidation("El topico especificado no existe");
+        if (!topicoRepository.existsByIdAndActivoTrue(id)) {
+            throw new EntityNotFoundException("El topico especificado no existe");
         }
 
         var topico = topicoRepository.getReferenceById(id);

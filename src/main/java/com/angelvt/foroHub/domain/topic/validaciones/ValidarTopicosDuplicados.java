@@ -1,7 +1,7 @@
 package com.angelvt.foroHub.domain.topic.validaciones;
 
 import com.angelvt.foroHub.domain.topic.TopicoRepository;
-import com.angelvt.foroHub.infra.errors.IntegrityValidation;
+import jakarta.validation.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +25,7 @@ public class ValidarTopicosDuplicados implements IValidarTopico {
             var tituloDB = t.getTitulo().replace(" ", "").toLowerCase();
             var mensajeDB = t.getMensaje().replace(" ", "").toLowerCase();
             if (tituloDB.equals(tituloNuevo) || mensajeDB.equals(mensajeNuevo)){
-                throw new IntegrityValidation("No se pueden duplicar topicos");
+                throw new ValidationException("No se pueden duplicar topicos");
             }
         });
     }
