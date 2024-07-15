@@ -43,15 +43,21 @@ public class TopicoService {
 
         LocalDateTime creacion = LocalDateTime.now();
 
-        var topico = new Topico(null, datos.titulo(), datos.mensaje(), creacion, Estado.ABIERTO, autor, curso);
+        var topico = new Topico(null, datos.titulo(), datos.mensaje(), creacion, Estado.ABIERTO, autor, curso, true);
 
         topicoRepository.save(topico);
 
         return new TopicoDatosRespuesta(topico);
     }
 
-    public List<TopicoDatosRespuesta> obtenerTopicos() {
-        var topicos = topicoRepository.findAll();
+    public List<TopicoDatosRespuesta> obtenerTopicos(Long cursoId) {
+        if (!cursoRepository.existsById(cursoId)) {
+            throw new IntegrityValidation("El curso especificado no existe");
+        }
+
+        var curso = cursoRepository.getReferenceById(cursoId);
+
+        var topicos = topicoRepository.findByCursoAndActivoTrue(curso);
 
         return topicos.stream()
                 .sorted(Comparator.comparing(Topico::getFechaCreacion).reversed())
@@ -60,7 +66,7 @@ public class TopicoService {
     }
 
     public TopicoDatosCompleto obtenerTopico(Long id) {
-        if (!topicoRepository.existsById(id)) {
+        if (!topicoRepository.existsByIdAndActivoTrue(id)) {
             throw new IntegrityValidation("El topico especificado no existe");
         }
 
@@ -72,5 +78,51 @@ public class TopicoService {
                 .toList();
 
         return new TopicoDatosCompleto(topico, respuestas);
+    }
+
+    public TopicoDatosRespuesta actualizarTopico(Long id, TopicoDatosActualizar datos) {
+        if (!topicoRepository.existsByIdAndActivoTrue(id)) {
+            throw new IntegrityValidation("El topico especificado no existe");
+        }
+
+        var topico = topicoRepository.getReferenceById(id);
+
+        if (!topico.getStatus().equals(Estado.ABIERTO)) {
+            throw new IntegrityValidation("El topico ya se ha cerrado como " + topico.getStatus());
+        }
+
+        topico.actualizar(datos);
+
+        return new TopicoDatosRespuesta(topico);
+    }
+
+    public TopicoDatosRespuesta cerrarTopico(Long id, TopicoDatosActualizar datos) {
+        if (!topicoRepository.existsByIdAndActivoTrue(id)) {
+            throw new IntegrityValidation("El topico especificado no existe");
+        }
+
+        var topico = topicoRepository.getReferenceById(id);
+
+        if (!topico.getStatus().equals(Estado.ABIERTO)) {
+            throw new IntegrityValidation("El topico ya se ha cerrado como " + topico.getStatus());
+        }
+
+        if (datos.estado().equals(Estado.CERRADO) || datos.estado().equals(Estado.CERRADO_RESUELTO)) {
+            topico.setStatus(datos.estado());
+        } else {
+            throw new IntegrityValidation("Solo se puede cerrar un topico como cerrado o cerrado resuelto.");
+        }
+
+        return  new TopicoDatosRespuesta(topico);
+    }
+
+    public void borrarTopico(Long id) {
+        if (id != null && !topicoRepository.existsByIdAndActivoTrue(id)) {
+            throw new IntegrityValidation("El topico especificado no existe");
+        }
+
+        var topico = topicoRepository.getReferenceById(id);
+
+        topico.eliminar();
     }
 }

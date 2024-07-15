@@ -1,8 +1,7 @@
 package com.angelvt.foroHub.controllers;
 
-import com.angelvt.foroHub.domain.topic.TopicoDatosRegistro;
-import com.angelvt.foroHub.domain.topic.TopicoService;
-import com.angelvt.foroHub.domain.topic.TopicoDatosRespuesta;
+import com.angelvt.foroHub.domain.topic.*;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,14 +19,14 @@ public class TopicController {
         this.topicoService = topicoService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<TopicoDatosRespuesta>> getTopicos() {
-        var topicos = topicoService.obtenerTopicos();
+    @GetMapping("/curso/{cursoId}")
+    public ResponseEntity<List<TopicoDatosRespuesta>> getTopicos(@PathVariable Long cursoId) {
+        var topicos = topicoService.obtenerTopicos(cursoId);
         return ResponseEntity.ok(topicos);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity getTopico(@PathVariable Long id) {
+    public ResponseEntity<TopicoDatosCompleto> getTopico(@PathVariable Long id) {
         var topico = topicoService.obtenerTopico(id);
         return ResponseEntity.ok(topico);
     }
@@ -39,17 +38,23 @@ public class TopicController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity updateTopico() {
-        return ResponseEntity.ok(new PingController.Pong("Modificando topico"));
+    @Transactional
+    public ResponseEntity<TopicoDatosRespuesta> updateTopico(@PathVariable Long id, @RequestBody @Valid TopicoDatosActualizar datos) {
+        var topico = topicoService.actualizarTopico(id ,datos);
+        return ResponseEntity.ok(topico);
     }
 
     @PutMapping("/cerrar/{id}")
-    public ResponseEntity cerrarTopico() {
-        return ResponseEntity.ok(new PingController.Pong("Cerrando topico"));
+    @Transactional
+    public ResponseEntity<TopicoDatosRespuesta> cerrarTopico(@PathVariable Long id, @RequestBody @Valid TopicoDatosActualizar datos) {
+        var topico = topicoService.cerrarTopico(id ,datos);
+        return ResponseEntity.ok(topico);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteTopico() {
-        return ResponseEntity.ok(new PingController.Pong("Borrando topico"));
+    @Transactional
+    public ResponseEntity deleteTopico(@PathVariable Long id) {
+        topicoService.borrarTopico(id);
+        return ResponseEntity.noContent().build();
     }
 }

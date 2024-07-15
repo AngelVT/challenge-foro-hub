@@ -35,4 +35,6 @@ public class Respuesta {
     private LocalDateTime fechaCreacion;
 
     private Boolean solucion;
+
+    private Boolean activo;
 }

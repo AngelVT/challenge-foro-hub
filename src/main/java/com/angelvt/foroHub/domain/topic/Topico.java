@@ -3,10 +3,7 @@ package com.angelvt.foroHub.domain.topic;
 import com.angelvt.foroHub.domain.curso.Curso;
 import com.angelvt.foroHub.domain.usuario.Usuario;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -26,6 +23,7 @@ public class Topico {
     @Column(name = "fecha_creacion")
     private LocalDateTime fechaCreacion;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private Estado status;
 
@@ -36,4 +34,20 @@ public class Topico {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "curso")
     private Curso curso;
+
+    private Boolean activo;
+
+    public void actualizar(TopicoDatosActualizar datos) {
+        if (datos.mensaje() != null) {
+            this.mensaje = datos.mensaje();
+        }
+
+        if (datos.titulo() != null) {
+            this.titulo = datos.titulo();
+        }
+    }
+
+    public void eliminar() {
+        this.activo = false;
+    }
 }
